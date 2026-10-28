@@ -9,8 +9,7 @@ use App\Models\Genre;
 class MovieController extends Controller
 {
     /**
-     * Display movies from the database.
-     * Screenshot 6: BEFORE eager loading.
+     * Display the list of movies.
      */
     public function index(Request $request)
     {
@@ -19,7 +18,6 @@ class MovieController extends Controller
 
         $genres = Genre::all();
 
-        // BEFORE: No eager loading.
         $moviesQuery = Movie::query()->with('genre');
 
         if ($genre !== null && $genre !== '') {
@@ -47,9 +45,7 @@ class MovieController extends Controller
     {
         $genres = Genre::all();
 
-        return view('movies.create', [
-            'genres' => $genres
-        ]);
+        return view('movies.create', compact('genres'));
     }
 
     /**
@@ -77,21 +73,18 @@ class MovieController extends Controller
     /**
      * Display the specified movie.
      */
-    public function show(string $id)
+    public function show(Movie $movie)
     {
-        $movie = Movie::findOrFail($id);
+        $movie->load('genre');
 
-        return view('movies.show', [
-            'movie' => $movie
-        ]);
+        return view('movies.show', compact('movie'));
     }
 
     /**
      * Show the form for editing a movie.
      */
-    public function edit(string $id)
+    public function edit(Movie $movie)
     {
-        $movie = Movie::findOrFail($id);
         $genres = Genre::all();
 
         return view('movies.edit', compact('movie', 'genres'));
@@ -100,10 +93,8 @@ class MovieController extends Controller
     /**
      * Update the specified movie.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Movie $movie)
     {
-        $movie = Movie::findOrFail($id);
-
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'genre_id' => 'required|exists:genres,id',
@@ -122,11 +113,10 @@ class MovieController extends Controller
     }
 
     /**
-     * Remove the specified movie.
+     * Delete the specified movie.
      */
-    public function destroy(string $id)
+    public function destroy(Movie $movie)
     {
-        $movie = Movie::findOrFail($id);
         $movie->delete();
 
         return redirect()
@@ -141,8 +131,6 @@ class MovieController extends Controller
     {
         $movie = Movie::firstOrFail();
 
-        return view('movies.featured', [
-            'movie' => $movie
-        ]);
+        return view('movies.featured', compact('movie'));
     }
 }
